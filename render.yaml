@@ -7,5 +7,5 @@ services:
     startCommand: "python KB_naruto/main.py"
     autoDeploy: true
     envVars:
-      - key: TOKEH
+      - key: TOKEN
         sync: false
