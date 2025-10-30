@@ -1,6 +1,7 @@
 services:
   - type: worker
     name: naruto-card-bot
+    runtime: python
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
