@@ -1,4 +1,3 @@
-TOKEN = "8063542955:AAGBWs7LQFYqlFUvbDYrksqB25-BHU-Oey0"
 CHAT_LINK = "https://t.me/+dsgHgrwid_diNDQx"
 
 CARDS_FOLDER = "cards"

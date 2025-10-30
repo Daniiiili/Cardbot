@@ -1,4 +1,8 @@
 from telebot import TeleBot
-import config
+from dotenv import load_dotenv
+import os
 
-bot = TeleBot(config.TOKEN)
+load_dotenv()  # загружаем .env файл
+
+TOKEN = os.getenv("TOKEN")  # берём токен из окружения
+bot = TeleBot(TOKEN)
