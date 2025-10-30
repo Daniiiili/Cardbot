@@ -3,7 +3,7 @@ services:
     name: naruto-card-bot
     env: python
     plan: free
-    buildCommand: "pip install -r KB_naruto/requirements.txt"
+    buildCommand: "pip install -r KB_naruto/requirements.txt.txt"
     startCommand: "python KB_naruto/main.py"
     autoDeploy: true
     envVars:
