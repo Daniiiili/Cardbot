@@ -292,3 +292,36 @@ def remove_artifact(message):
     if data["artifacts"][file_key] <= 0:
         del data["artifacts"][file_key]
     bot.reply_to(message, f"💠 Артефакт удалён: {os.path.splitext(file_key)[0]} у {nick}.")
+# 🎯 Добавить турнирный опыт
+@bot.message_handler(commands=['add_exp'])
+def add_exp(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    try:
+        _, nick, amount = message.text.split()
+        amount = int(amount)
+        uid, data = find_user_by_nick(nick)
+        if not data:
+            bot.reply_to(message, "⚠️ Игрок с таким ником не найден.")
+            return
+        data["exp"] = data.get("exp", 0) + amount
+        bot.reply_to(message, f"✅ {nick} теперь имеет {data['exp']} 🎯 турнирного опыта.")
+    except:
+        bot.reply_to(message, "❌ Формат: /add_exp ник число")
+
+# 🗑️ Убрать турнирный опыт
+@bot.message_handler(commands=['remove_exp'])
+def remove_exp(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    try:
+        _, nick, amount = message.text.split()
+        amount = int(amount)
+        uid, data = find_user_by_nick(nick)
+        if not data:
+            bot.reply_to(message, "⚠️ Игрок с таким ником не найден.")
+            return
+        data["exp"] = max(0, data.get("exp", 0) - amount)
+        bot.reply_to(message, f"🗑️ {nick} теперь имеет {data['exp']} 🎯 турнирного опыта.")
+    except:
+        bot.reply_to(message, "❌ Формат: /remove_exp ник число")

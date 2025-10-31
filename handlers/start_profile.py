@@ -37,6 +37,7 @@ def send_random_cards(message):
         "wins": 0,
         "losses": 0,
         "battles": 0,
+        "exp": 0,
         "cards": {f: 1 for f in random_cards},
         "artifacts": {}
     }
@@ -81,6 +82,7 @@ def show_profile(message):
         f"🏆 Победы: {data['wins']}\n"
         f"💀 Поражения: {data['losses']}\n"
         f"⚔️ Боев сегодня: {data['battles']}/{config.BATTLE_LIMIT}"
+        f"🎯 Турнирный опыт: {data['exp']}"
     )
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("Инвентарь"), types.KeyboardButton("Прокачка карт"))
