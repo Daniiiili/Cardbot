@@ -216,7 +216,7 @@ def remove_card(message):
         bot.reply_to(message, "⚠️ У игрока нет карт.")
         return
 
-    # поддержка пробелов и регистра
+    # поддержка пробелов и регистраa
     candidates = [card_name.strip(), card_name.strip() + ".jpg", card_name.replace(" ", "_")]
     candidates += [card_name.replace(" ", "_") + ".jpg"]
     inv_lower = {k.lower(): k for k in data["cards"].keys()}
