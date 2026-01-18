@@ -292,7 +292,7 @@ def remove_artifact(message):
     if data["artifacts"][file_key] <= 0:
         del data["artifacts"][file_key]
     bot.reply_to(message, f"💠 Артефакт удалён: {os.path.splitext(file_key)[0]} у {nick}.")
-# 🎯 Добавить турнирный опыт
+# 🎯 Добавить турнирный опытd
 @bot.message_handler(commands=['add_exp'])
 def add_exp(message):
     if message.from_user.id != ADMIN_ID:
