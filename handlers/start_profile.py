@@ -103,7 +103,7 @@ def show_profile(message):
     profile_text = (
         f"🧍 *Профиль: {data['nick']}*\n\n"
         f"💴 Йены: *{data['yen']}*\n"
-        f"💎 Кристаллы: *{data['crystals']}*\n\n"
+        f"💎 Кристаллы: *{data['crystals']}*\n"
         f"🏆 Победы: *{data['wins']}*\n"
         f"💀 Поражения: *{data['losses']}*\n"
         f"⚔️ Боев сегодня: *{data['battles']}*/{config.BATTLE_LIMIT}\n"
