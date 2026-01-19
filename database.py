@@ -7,6 +7,7 @@ import atexit
 DATA_FILE = "players_data.json"
 SAVE_EVERY_SECONDS = 30
 
+pending_payments = {}
 players_data = {}
 used_nicks = set()
 waiting_for_nick = set()   # временное, не сохраняем
@@ -32,6 +33,7 @@ def load_all():
             raw = json.load(f)
 
         players_raw = raw.get("players_data", {})
+        pending_payments = raw.get("pending_payments", {})
         players_data = {int(uid): pdata for uid, pdata in players_raw.items()}
         used_nicks = set(raw.get("used_nicks", []))
 
@@ -48,7 +50,8 @@ def save_all(force=False):
     try:
         data = {
             "players_data": {str(uid): pdata for uid, pdata in players_data.items()},
-            "used_nicks": list(used_nicks)
+            "used_nicks": list(used_nicks),
+            "pending_payments": pending_payments
         }
 
         tmp = DATA_FILE + ".tmp"
