@@ -133,9 +133,6 @@ def back_to_menu(message):
         types.KeyboardButton("⚡ Прокачка карт")
     )
     markup.add(
-
-    )
-    markup.add(
         types.KeyboardButton("🪙 Донат")
     )
     bot.send_message(message.chat.id, "🏠 *Главное меню*", parse_mode="Markdown", reply_markup=markup)
