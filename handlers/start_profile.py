@@ -126,14 +126,14 @@ def back_to_menu(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(
         types.KeyboardButton("🧍 Профиль"),
-        types.KeyboardButton("🎒 Инвентарь")
+        types.KeyboardButton("💬 Беседа")
     )
     markup.add(
         types.KeyboardButton("🛍 Магазин"),
         types.KeyboardButton("⚡ Прокачка карт")
     )
     markup.add(
-        types.KeyboardButton("💬 Беседа")
+
     )
     markup.add(
         types.KeyboardButton("🪙 Донат")
