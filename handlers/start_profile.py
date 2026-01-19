@@ -124,7 +124,18 @@ def show_profile(message):
 @bot.message_handler(func=lambda message: message.text.lower() in ["назад", "⬅ назад", "⬅️ главное меню", "главное меню"])
 def back_to_menu(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("🧍 Профиль"), types.KeyboardButton("Инвентарь"))
-    markup.add(types.KeyboardButton("🛍 Магазин"), types.KeyboardButton("Прокачка карт"))
-    markup.add(types.KeyboardButton("💬 Беседа"))
+    markup.add(
+        types.KeyboardButton("🧍 Профиль"),
+        types.KeyboardButton("🎒 Инвентарь")
+    )
+    markup.add(
+        types.KeyboardButton("🛍 Магазин"),
+        types.KeyboardButton("⚡ Прокачка карт")
+    )
+    markup.add(
+        types.KeyboardButton("💬 Беседа")
+    )
+    markup.add(
+        types.KeyboardButton("🪙 Донат")
+    )
     bot.send_message(message.chat.id, "🏠 *Главное меню*", parse_mode="Markdown", reply_markup=markup)
