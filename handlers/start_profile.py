@@ -7,12 +7,35 @@ from database import players_data, used_nicks, waiting_for_nick, mark_dirty
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    user_id = message.from_user.id
+    data = players_data.get(user_id)
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("🃏 Начальные карты"))
+
+    if not data:  # ещё не получал стартовые карты
+        markup.add(types.KeyboardButton("🃏 Начальные карты"))
+        bot.send_message(
+            message.chat.id,
+            "🔥 *КБ Наруто — арена силы* 🔥\n\n"
+            "⚔️ *7 боёв в день* — докажи, кто тут сильней.\n"
+            "🏆 Побеждай → получай валюту → усиливай коллекцию.\n\n"
+            "🥷 Турниры: сетка, награды, рейтинг.\n"
+            "🐉 Боссфайты: выживание, урон, легендарный лут.\n"
+            "🛡 Кланы: войны, общий прогресс, привилегии.\n\n"
+            "Жми кнопку и забирай стартовые карты 👇",
+            parse_mode="Markdown",
+            reply_markup=markup
+        )
+        return
+
+    # если уже зарегистрирован/получал карты — сразу главное меню
+    markup.add(types.KeyboardButton("🧍 Профиль"), types.KeyboardButton("Инвентарь"))
+    markup.add(types.KeyboardButton("🛍 Магазин"), types.KeyboardButton("Прокачка карт"))
+    markup.add(types.KeyboardButton("💬 Беседа"))
     bot.send_message(
         message.chat.id,
-        "👋 Приветствую в КБ (Карточных Боях) по Наруто!\n\n"
-        "Нажми кнопку ниже, чтобы получить свои стартовые карты:",
+        "🏠 *Главное меню*",
+        parse_mode="Markdown",
         reply_markup=markup
     )
 
@@ -78,23 +101,26 @@ def show_profile(message):
         return
 
     profile_text = (
-        f"🧍 Профиль: {data['nick']}\n"
-        f"💴 Йены: {data['yen']}\n"
-        f"💎 Кристаллы: {data['crystals']}\n"
-        f"🏆 Победы: {data['wins']}\n"
-        f"💀 Поражения: {data['losses']}\n"
-        f"⚔️ Боев сегодня: {data['battles']}/{config.BATTLE_LIMIT}"
-        f"🎯 Турнирный опыт: {data['exp']}"
+        f"🧍 *Профиль: {data['nick']}*\n\n"
+        f"💴 Йены: *{data['yen']}*\n"
+        f"💎 Кристаллы: *{data['crystals']}*\n\n"
+        f"🏆 Победы: *{data['wins']}*\n"
+        f"💀 Поражения: *{data['losses']}*\n"
+        f"⚔️ Боев сегодня: *{data['battles']}*/{config.BATTLE_LIMIT}\n"
+        f"🎯 Турнирный опыт: *{data.get('exp', 0)}*"
     )
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("Инвентарь"), types.KeyboardButton("Прокачка карт"))
     markup.add(types.KeyboardButton("Назад"))
-    bot.send_message(message.chat.id, profile_text, reply_markup=markup)
+    bot.send_message(message.chat.id, profile_text, parse_mode="Markdown", reply_markup=markup)
 
 
-@bot.message_handler(func=lambda message: message.text.lower() in ["назад", "⬅ назад"])
+
+@bot.message_handler(func=lambda message: message.text.lower() in ["назад", "⬅ назад", "⬅️ главное меню", "главное меню"])
 def back_to_menu(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("Профиль"), types.KeyboardButton("Беседа"))
-    markup.add(types.KeyboardButton("Донат"), types.KeyboardButton("Магазин"))
-    bot.send_message(message.chat.id, "📲 Главное меню", reply_markup=markup)
+    markup.add(types.KeyboardButton("🧍 Профиль"), types.KeyboardButton("Инвентарь"))
+    markup.add(types.KeyboardButton("🛍 Магазин"), types.KeyboardButton("Прокачка карт"))
+    markup.add(types.KeyboardButton("💬 Беседа"))
+    bot.send_message(message.chat.id, "🏠 *Главное меню*", parse_mode="Markdown", reply_markup=markup)

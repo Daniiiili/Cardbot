@@ -5,7 +5,7 @@ from loader import bot
 from database import players_data, mark_dirty
 
 
-RESET_HOUR = 0      # 00:00
+RESET_HOUR = 20      # 00:00
 RESET_MINUTE = 0
 
 

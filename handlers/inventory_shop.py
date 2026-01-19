@@ -43,30 +43,6 @@ def handle_defeat(message):
     bot.reply_to(message, f"{data['nick']}, не отчаивайся!\n+5 йен 💴\n+1 кристалл 💎\n📊 Осталось боёв: {config.BATTLE_LIMIT - data['battles']}")
     mark_dirty()
 
-# 🧍 Профиль
-@bot.message_handler(func=lambda m: m.text.lower() in ["профиль", "🧍 профиль"])
-def show_profile(message):
-    user_id = message.from_user.id
-    data = players_data.get(user_id)
-    if not data or not data["nick"]:
-        bot.send_message(message.chat.id, "⚠️ Ты ещё не зарегистрировал профиль.")
-        return
-
-    nick = data["nick"]
-    text = (
-        f"Профиль: {nick}\n"
-        f"Йены: {data['yen']}\n"
-        f"Кристаллы: {data['crystals']}\n"
-        f"Победы: {data['wins']}\n"
-        f"Поражения: {data['losses']}\n"
-        f"Боев сегодня: {data['battles']}/{config.BATTLE_LIMIT}"
-    )
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("Инвентарь"), types.KeyboardButton("Прокачка карт"))
-    markup.add(types.KeyboardButton("Назад"))
-    bot.send_message(message.chat.id, text, reply_markup=markup)
-
-
 # 🃏 Инвентарь
 @bot.message_handler(func=lambda m: m.text.lower() in ["инвентарь", "🃏 инвентарь"])
 def show_inventory(message):
@@ -190,11 +166,3 @@ def buy_pack(message):
     with open(os.path.join(config.CARDS_FOLDER, new_card), "rb") as card:
         bot.send_photo(message.chat.id, card, caption=f"🎉 Новая карта: {card_name} (x{data['cards'][new_card]})")
     mark_dirty()
-
-# Назад
-@bot.message_handler(func=lambda m: m.text.lower() in ["назад", "⬅ назад"])
-def back_to_menu(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("Профиль"), types.KeyboardButton("Беседа"))
-    markup.add(types.KeyboardButton("Донат"), types.KeyboardButton("Магазин"))
-    bot.send_message(message.chat.id, "📲 Главное меню", reply_markup=markup)
