@@ -28,15 +28,19 @@ def start_message(message):
         )
         return
 
-    # если уже зарегистрирован/получал карты — сразу главное меню
-    markup.add(types.KeyboardButton("🧍 Профиль"), types.KeyboardButton("Инвентарь"))
-    markup.add(types.KeyboardButton("🛍 Магазин"), types.KeyboardButton("Прокачка карт"))
-    markup.add(types.KeyboardButton("💬 Беседа"))
-    bot.send_message(
-        message.chat.id,
-        "🏠 *Главное меню*",
-        parse_mode="Markdown",
-        reply_markup=markup
+    markup.add(
+        types.KeyboardButton("🧍 Профиль"),
+        types.KeyboardButton("🎒 Инвентарь")
+    )
+    markup.add(
+        types.KeyboardButton("🛍 Магазин"),
+        types.KeyboardButton("⚡ Прокачка карт")
+    )
+    markup.add(
+        types.KeyboardButton("💬 Беседа")
+    )
+    markup.add(
+        types.KeyboardButton("🪙 Донат")
     )
 
 
