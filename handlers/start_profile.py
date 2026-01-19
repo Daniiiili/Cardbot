@@ -8,10 +8,10 @@ from database import players_data, used_nicks, waiting_for_nick
 @bot.message_handler(commands=['start'])
 def start_message(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("🃏 анаНачальные карты"))
+    markup.add(types.KeyboardButton("🃏 Начальные карты"))
     bot.send_message(
         message.chat.id,
-        "👋 Приветствую в КБ (Карточных Боях) по Наруто!!!\n\n"
+        "👋 Приветствую в КБ (Карточных Боях) по Наруто!!!!!\n\n"
         "Нажми кнопку ниже, чтобы получить свои стартовые карты:",
         reply_markup=markup
     )
