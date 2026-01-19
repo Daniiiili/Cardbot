@@ -105,11 +105,6 @@ def chat_link(message):
     )
 
 
-# 🪙 Донат
-@bot.message_handler(func=lambda m: m.text.lower() in ["донат", "🪙 донат"])
-def donate(message):
-    bot.send_message(message.chat.id, "🪙 Донат — текст добавим позже.")
-
 
 # 🛍 Магазин
 @bot.message_handler(func=lambda m: m.text.lower() in ["магазин", "🛍 магазин"])
