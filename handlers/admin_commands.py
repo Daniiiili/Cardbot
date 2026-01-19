@@ -1,5 +1,5 @@
 from loader import bot
-from database import players_data
+from database import players_data, mark_dirty
 import os
 from config import ADMIN_ID, CARDS_FOLDER, ARTIFACTS_FOLDER
 
@@ -325,3 +325,36 @@ def remove_exp(message):
         bot.reply_to(message, f"🗑️ {nick} теперь имеет {data['exp']} 🎯 турнирного опыта.")
     except:
         bot.reply_to(message, "❌ Формат: /remove_exp ник число")
+@bot.message_handler(commands=['reset_now'])
+def reset_now(message):
+    if not admin_only(message):
+        return
+
+    reset_count = 0
+    notified = 0
+
+    for uid, data in players_data.items():
+        if not data or not data.get("nick"):
+            continue
+
+        if data.get("battles", 0) != 0:
+            data["battles"] = 0
+            reset_count += 1
+
+        try:
+            bot.send_message(
+                uid,
+                "🔄 Админ-сброс!\n⚔️ Бои обновлены — у тебя снова доступно 7 боёв."
+            )
+            notified += 1
+        except Exception:
+            pass  # пользователь мог удалить чат / заблокировать бота
+
+    mark_dirty()
+
+    bot.reply_to(
+        message,
+        f"✅ Сброс выполнен\n"
+        f"👥 Игроков обработано: {reset_count}\n"
+        f"📨 Уведомлений отправлено: {notified}"
+    )
