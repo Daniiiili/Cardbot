@@ -3,7 +3,7 @@ from loader import bot
 import os
 import random
 import config
-from database import players_data, used_nicks, waiting_for_nick
+from database import players_data, used_nicks, waiting_for_nick, mark_dirty
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
@@ -41,6 +41,7 @@ def send_random_cards(message):
         "cards": {f: 1 for f in random_cards},
         "artifacts": {}
     }
+    mark_dirty()
     waiting_for_nick.add(user_id)
     bot.send_message(message.chat.id, "📝 Введите ваш уникальный ник:")
 
@@ -59,6 +60,7 @@ def set_nick(message):
 
     players_data[user_id]["nick"] = nick
     used_nicks.add(nick)
+    mark_dirty()
     waiting_for_nick.remove(user_id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)

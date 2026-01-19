@@ -3,7 +3,7 @@ from loader import bot
 import os
 import config
 import random
-from database import players_data
+from database import players_data, mark_dirty
 from config import ARTIFACT_PRICE, ARTIFACTS_FOLDER
 
 
@@ -23,7 +23,7 @@ def handle_victory(message):
     data["wins"] += 1
     data["battles"] += 1
     bot.reply_to(message, f"Поздравляю, {data['nick']}!\n+10 йен 💴\n+2 кристалла 💎\n📊 Осталось боёв: {config.BATTLE_LIMIT - data['battles']}")
-
+    mark_dirty()
 
 # 💀 Поражение
 @bot.message_handler(func=lambda m: m.text.lower() in ["поражение", "💀 поражение"])
@@ -41,7 +41,7 @@ def handle_defeat(message):
     data["losses"] += 1
     data["battles"] += 1
     bot.reply_to(message, f"{data['nick']}, не отчаивайся!\n+5 йен 💴\n+1 кристалл 💎\n📊 Осталось боёв: {config.BATTLE_LIMIT - data['battles']}")
-
+    mark_dirty()
 
 # 🧍 Профиль
 @bot.message_handler(func=lambda m: m.text.lower() in ["профиль", "🧍 профиль"])
@@ -166,7 +166,7 @@ def buy_artifact(message):
     file_path = os.path.join(ARTIFACTS_FOLDER, artifact)
     with open(file_path, "rb") as art:
         bot.send_photo(message.chat.id, art, caption=f"✨ Ты получил артефакт: {artifact_name}")
-
+    mark_dirty()
 
 # 🎁 Покупка пака
 @bot.message_handler(func=lambda m: m.text.lower() in ["купить пак", "🎁 купить пак"])
@@ -189,7 +189,7 @@ def buy_pack(message):
     card_name = os.path.splitext(new_card)[0]
     with open(os.path.join(config.CARDS_FOLDER, new_card), "rb") as card:
         bot.send_photo(message.chat.id, card, caption=f"🎉 Новая карта: {card_name} (x{data['cards'][new_card]})")
-
+    mark_dirty()
 
 # Назад
 @bot.message_handler(func=lambda m: m.text.lower() in ["назад", "⬅ назад"])

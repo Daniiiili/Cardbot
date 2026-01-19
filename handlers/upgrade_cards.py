@@ -1,7 +1,7 @@
 from telebot import types
 from loader import bot
 import os
-from database import players_data
+from database import players_data, mark_dirty
 import config
 
 WAITING_FOR_UPGRADE = set()
@@ -80,7 +80,7 @@ def process_upgrade(message):
 
     # Добавляем новую карту 2 уровня
     data["cards"][upgraded_filename] = data["cards"].get(upgraded_filename, 0) + 1
-
+    mark_dirty()
     with open(upgraded_path, "rb") as photo:
         bot.send_photo(message.chat.id, photo, caption=f"⚡ {card_name} успешно прокачан до 2 уровня!")
 
