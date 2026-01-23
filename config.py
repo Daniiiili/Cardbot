@@ -15,3 +15,7 @@ DONATE_BANKS = "Озон / Альфа"
 DONATE_ADMIN_USERNAME = "@danikqk"
 AKATSUKI_PRICE_RUB = 80
 AKATSUKI_FOLDER = "card_akatsuki"
+CHUNIN_PRICE_RUB = 60
+BIJU_PRICE_RUB = 200
+CHUNIN_FOLDER = "card_chunin"
+BIJU_FOLDER = "card_biju"

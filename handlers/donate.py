@@ -4,22 +4,46 @@ import random
 from telebot import types
 
 from loader import bot
-from config import DONATE_PHONE, DONATE_BANKS, DONATE_ADMIN_USERNAME, AKATSUKI_PRICE_RUB, AKATSUKI_FOLDER, ADMIN_ID
+from config import (
+    DONATE_PHONE, DONATE_BANKS, DONATE_ADMIN_USERNAME, ADMIN_ID,
+    AKATSUKI_PRICE_RUB, AKATSUKI_FOLDER,
+    CHUNIN_PRICE_RUB, CHUNIN_FOLDER,
+    BIJU_PRICE_RUB, BIJU_FOLDER
+)
 from database import players_data, pending_payments, mark_dirty
 
 
 # кто сейчас в процессе отправки чека
 waiting_receipt = set()
-
+PRODUCTS = {
+    "akatsuki_pack": {
+        "title": "🟥 Пак Акацуки",
+        "price": AKATSUKI_PRICE_RUB,
+        "folder": AKATSUKI_FOLDER,
+        "button": f"🟥 Купить пак Акацуки ({AKATSUKI_PRICE_RUB}₽)",
+    },
+    "chunin_pack": {
+        "title": "🟦 Пак Чунины",
+        "price": CHUNIN_PRICE_RUB,
+        "folder": CHUNIN_FOLDER,
+        "button": f"🟦 Купить пак Чунины ({CHUNIN_PRICE_RUB}₽)",
+    },
+    "biju_pack": {
+        "title": "🟨 Пак Биджу",
+        "price": BIJU_PRICE_RUB,
+        "folder": BIJU_FOLDER,
+        "button": f"🟨 Купить пак Биджу ({BIJU_PRICE_RUB}₽)",
+    },
+}
 
 def _new_payment_id(user_id: int) -> str:
     return f"pay_{user_id}_{int(time.time())}"
 
 
-def _pick_random_akatsuki_card() -> str | None:
-    if not os.path.isdir(AKATSUKI_FOLDER):
+def _pick_random_card_from(folder: str) -> str | None:
+    if not os.path.isdir(folder):
         return None
-    files = [f for f in os.listdir(AKATSUKI_FOLDER) if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))]
+    files = [f for f in os.listdir(folder) if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))]
     if not files:
         return None
     return random.choice(files)
@@ -28,19 +52,29 @@ def _pick_random_akatsuki_card() -> str | None:
 @bot.message_handler(func=lambda m: m.text.lower() in ["донат", "🪙 донат"])
 def donate_menu(message):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(types.KeyboardButton(f"🟥 Купить пак Акацуки ({AKATSUKI_PRICE_RUB}₽)"))
+    kb.add(types.KeyboardButton(PRODUCTS["akatsuki_pack"]["button"]))
+    kb.add(types.KeyboardButton(PRODUCTS["chunin_pack"]["button"]))
+    kb.add(types.KeyboardButton(PRODUCTS["biju_pack"]["button"]))
     kb.add(types.KeyboardButton("⬅️ Главное меню"))
+
     bot.send_message(
         message.chat.id,
-        "🪙 *Донат*\n\n"
-        "Выбирай пакет доната ниже 👇",
+        "🪙 *Донат-магазин*\n\n"
+        "Выбери пакет. После оплаты пришли *скрин операции* — заявка уйдёт админу, и после подтверждения бот выдаст награду.",
         parse_mode="Markdown",
         reply_markup=kb
     )
 
+def _find_product_by_button(text: str):
+    t = text.strip()
+    for key, p in PRODUCTS.items():
+        if t == p["button"]:
+            return key, p
+    return None, None
 
-@bot.message_handler(func=lambda m: m.text.lower().startswith("🟥 купить пак акацуки"))
-def buy_akatsuki(message):
+
+@bot.message_handler(func=lambda m: _find_product_by_button(m.text or "")[0] is not None)
+def buy_product(message):
     user_id = message.from_user.id
     data = players_data.get(user_id)
 
@@ -48,14 +82,16 @@ def buy_akatsuki(message):
         bot.send_message(message.chat.id, "⚠️ Сначала зарегистрируйся через /start.")
         return
 
+    product_key, product = _find_product_by_button(message.text)
+
     payment_id = _new_payment_id(user_id)
     pending_payments[payment_id] = {
         "user_id": user_id,
         "nick": data.get("nick"),
         "status": "waiting_receipt",
         "created_at": int(time.time()),
-        "product": "akatsuki_pack",
-        "price_rub": AKATSUKI_PRICE_RUB,
+        "product": product_key,
+        "price_rub": product["price"],
     }
     mark_dirty()
 
@@ -66,8 +102,8 @@ def buy_akatsuki(message):
 
     bot.send_message(
         message.chat.id,
-        "🟥 *Пак Акацуки*\n\n"
-        f"Цена: *{AKATSUKI_PRICE_RUB}₽*\n\n"
+        f"{product['title']}\n\n"
+        f"Цена: *{product['price']}₽*\n\n"
         f"1) Переведи по СБП на номер: `{DONATE_PHONE}`\n"
         f"2) Банк: *{DONATE_BANKS}*\n"
         f"3) Нажми кнопку ниже и отправь *скрин операции*.\n\n"
@@ -140,51 +176,116 @@ def receipt_handler(message):
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("adm_ok:") or c.data.startswith("adm_no:"))
 def admin_decision(call):
+    # только админ
     if call.from_user.id != ADMIN_ID:
         bot.answer_callback_query(call.id, "Нет прав.")
         return
 
     action, payment_id = call.data.split(":", 1)
+
     p = pending_payments.get(payment_id)
     if not p:
         bot.answer_callback_query(call.id, "Заявка не найдена.")
         return
+
+    # чтобы не подтверждали повторно
     if p.get("status") not in ("pending_admin", "waiting_receipt"):
         bot.answer_callback_query(call.id, f"Статус заявки: {p.get('status')}")
         return
 
-    user_id = p["user_id"]
+    user_id = p.get("user_id")
+    if not user_id:
+        bot.answer_callback_query(call.id, "В заявке нет user_id.")
+        return
 
+    # ❌ отклонение
     if action == "adm_no":
         p["status"] = "rejected"
         mark_dirty()
+
         bot.answer_callback_query(call.id, "Отклонено.")
-        bot.send_message(user_id, "❌ Донат не подтверждён. Если это ошибка — напиши админу.")
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+        try:
+            bot.send_message(user_id, "❌ Донат не подтверждён. Если это ошибка — напиши админу.")
+        except Exception:
+            pass
+
+        # убираем кнопки у админ-сообщения
+        try:
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+        except Exception:
+            pass
         return
 
-    # approve
-    card_file = _pick_random_akatsuki_card()
+    # ✅ подтверждение
+    product_key = p.get("product")
+    product = PRODUCTS.get(product_key)
+    if not product:
+        bot.answer_callback_query(call.id, "❌ Неизвестный товар в заявке.")
+        return
+
+    folder = product.get("folder")
+    if not folder:
+        bot.answer_callback_query(call.id, "❌ У товара не задана папка.")
+        return
+
+    # выбрать рандомную карту из нужной папки
+    def _pick_random_card_from(folder_path: str):
+        if not os.path.isdir(folder_path):
+            return None
+        files = [f for f in os.listdir(folder_path) if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))]
+        if not files:
+            return None
+        return random.choice(files)
+
+    card_file = _pick_random_card_from(folder)
     if not card_file:
-        bot.answer_callback_query(call.id, "Нет карт в папке card_akatsuki.")
+        bot.answer_callback_query(call.id, f"❌ Нет карт в папке: {folder}")
         return
 
+    # выдать карту игроку
     players_data.setdefault(user_id, {}).setdefault("cards", {})
     players_data[user_id]["cards"][card_file] = players_data[user_id]["cards"].get(card_file, 0) + 1
 
+    # отметить заявку
     p["status"] = "approved"
     p["reward"] = card_file
     mark_dirty()
 
-    # уведомления
-    bot.answer_callback_query(call.id, "Подтверждено, награда выдана.")
-    bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+    # UI админа
+    bot.answer_callback_query(call.id, "✅ Подтверждено, награда выдана.")
+    try:
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+    except Exception:
+        pass
 
+    # уведомить игрока
     card_name = os.path.splitext(card_file)[0]
     try:
-        with open(os.path.join(AKATSUKI_FOLDER, card_file), "rb") as photo:
-            bot.send_photo(user_id, photo, caption=f"🟥 Донат подтверждён!\n🎴 Ты получил карту: *{card_name}*", parse_mode="Markdown")
+        with open(os.path.join(folder, card_file), "rb") as photo:
+            bot.send_photo(
+                user_id,
+                photo,
+                caption=(
+                    "✅ Донат подтверждён!\n"
+                    f"{product['title']}\n"
+                    f"🎴 Ты получил карту: *{card_name}*"
+                ),
+                parse_mode="Markdown"
+            )
     except Exception:
-        bot.send_message(user_id, f"🟥 Донат подтверждён!\n🎴 Ты получил карту: {card_name}")
+        try:
+            bot.send_message(
+                user_id,
+                f"✅ Донат подтверждён!\n{product['title']}\n🎴 Ты получил карту: {card_name}"
+            )
+        except Exception:
+            pass
 
-    bot.send_message(ADMIN_ID, f"✅ Выдано: {p.get('nick')} получил {card_name} (ID {payment_id})")
+    # лог админу
+    try:
+        bot.send_message(
+            ADMIN_ID,
+            f"✅ Выдано: {p.get('nick')} получил {card_name} ({product['title']}) (ID {payment_id})"
+        )
+    except Exception:
+        pass
