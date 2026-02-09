@@ -3,6 +3,7 @@ from loader import bot
 import os
 from database import players_data, mark_dirty
 import config
+from handlers.card_names import pretty_card_name
 
 WAITING_FOR_UPGRADE = set()
 
@@ -168,6 +169,11 @@ def process_upgrade(message):
     data["cards"][upgraded_filename] = data["cards"].get(upgraded_filename, 0) + 1
     mark_dirty()
     with open(upgraded_path, "rb") as photo:
-        bot.send_photo(message.chat.id, photo, caption=f"⚡ {card_name} успешно прокачан до 2 уровня!")
+        pretty = pretty_card_name(upgraded_filename)
+        bot.send_photo(
+            message.chat.id,
+            photo,
+            caption=f"⚡ {pretty} прокачан до 2 уровня!"
+        )
 
     WAITING_FOR_UPGRADE.discard(user_id)

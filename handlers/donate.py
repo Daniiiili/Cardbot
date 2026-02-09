@@ -11,6 +11,7 @@ from config import (
     BIJU_PRICE_RUB, BIJU_FOLDER
 )
 from database import players_data, pending_payments, mark_dirty
+from handlers.card_names import pretty_card_name
 
 
 # кто сейчас в процессе отправки чека
@@ -259,7 +260,7 @@ def admin_decision(call):
         pass
 
     # уведомить игрока
-    card_name = os.path.splitext(card_file)[0]
+    card_name = pretty_card_name(card_file)
     try:
         with open(os.path.join(folder, card_file), "rb") as photo:
             bot.send_photo(

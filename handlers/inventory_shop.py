@@ -5,6 +5,8 @@ import config
 import random
 from database import players_data, mark_dirty
 from config import ARTIFACT_PRICE, ARTIFACTS_FOLDER
+from handlers.card_names import pretty_card_name
+
 
 
 # 🏆 Победа
@@ -67,8 +69,7 @@ def show_inventory(message):
 
         caption_lines = ["Твои карты:"]
         for card_file, count in cards:
-            name = os.path.splitext(card_file)[0].capitalize()
-            caption_lines.append(f"{name} x{count}")
+            caption_lines.append(f"{pretty_card_name(card_file)} x{count}")
         bot.send_message(message.chat.id, "\n".join(caption_lines))
 
     # 🪄 Артефакты
@@ -157,7 +158,12 @@ def buy_pack(message):
     new_card = random.choice(all_cards)
     data["cards"][new_card] = data["cards"].get(new_card, 0) + 1
 
-    card_name = os.path.splitext(new_card)[0]
+    pretty = pretty_card_name(new_card)
+
     with open(os.path.join(config.CARDS_FOLDER, new_card), "rb") as card:
-        bot.send_photo(message.chat.id, card, caption=f"🎉 Новая карта: {card_name} (x{data['cards'][new_card]})")
-    mark_dirty()
+        bot.send_photo(
+            message.chat.id,
+            card,
+            caption=f"🎉 Новая карта: {pretty} (x{data['cards'][new_card]})"
+        )
+
