@@ -6,6 +6,12 @@ import config
 
 WAITING_FOR_UPGRADE = set()
 
+def get_card_type(card_filename: str):
+    if card_filename.startswith("akatsuki_"):
+        return "akatsuki"
+    if card_filename.startswith("biju_"):
+        return "biju"
+    return "normal"
 
 @bot.message_handler(func=lambda m: m.text.lower() in ["прокачка карт", "⚡ прокачка карт"])
 def upgrade_menu(message):
@@ -51,6 +57,86 @@ def process_upgrade(message):
 
     # Проверяем наличие карты 1 уровня
     card_filename = f"{card_name}.jpg"
+    card_type = get_card_type(card_filename)
+    # 🟥 АКАЦУКИ: 100💎 + 50🎯 exp (без повторки)
+    if card_type == "akatsuki":
+        if data.get("crystals", 0) < 100:
+            bot.send_message(message.chat.id, "❌ Для прокачки Акацуки нужно 100💎 кристаллов.")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        if data.get("exp", 0) < 50:
+            bot.send_message(message.chat.id, "❌ Для прокачки Акацуки нужно 50🎯 турнирного опыта.")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        upgrade_folder = "card_akatsuki_2"
+        upgraded_filename = card_filename.replace(".jpg", "_2.jpg")
+        upgraded_path = os.path.join(upgrade_folder, upgraded_filename)
+
+        if not os.path.exists(upgraded_path):
+            bot.send_message(message.chat.id, f"⚠️ Карта {card_name} не имеет версии 2 уровня.")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        data["crystals"] -= 100
+        data["exp"] -= 50
+
+        data.setdefault("cards", {})
+        data["cards"][upgraded_filename] = data["cards"].get(upgraded_filename, 0) + 1
+
+        mark_dirty()
+
+        with open(upgraded_path, "rb") as photo:
+            bot.send_photo(message.chat.id, photo, caption=f"🟥 {card_name} прокачан до 2 уровня!")
+
+        WAITING_FOR_UPGRADE.discard(user_id)
+        return
+    # 🟨 БИДЖУ: 2 копии + 70💎 + 30🎯 exp
+    if card_type == "biju":
+        if data.get("cards", {}).get(card_filename, 0) < 2:
+            bot.send_message(message.chat.id, f"❌ Нужна повторная карта {card_name} (2 копии).")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        if data.get("crystals", 0) < 70:
+            bot.send_message(message.chat.id, "❌ Для прокачки Биджу нужно 70💎 кристаллов.")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        if data.get("exp", 0) < 30:
+            bot.send_message(message.chat.id, "❌ Для прокачки Биджу нужно 30🎯 турнирного опыта.")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        upgrade_folder = "card_biju_2"
+        upgraded_filename = card_filename.replace(".jpg", "_2.jpg")
+        upgraded_path = os.path.join(upgrade_folder, upgraded_filename)
+
+        if not os.path.exists(upgraded_path):
+            bot.send_message(message.chat.id, f"⚠️ Карта {card_name} не имеет версии 2 уровня.")
+            WAITING_FOR_UPGRADE.discard(user_id)
+            return
+
+        # списываем 2 копии
+        data["cards"][card_filename] -= 2
+        if data["cards"][card_filename] <= 0:
+            del data["cards"][card_filename]
+
+        data["crystals"] -= 70
+        data["exp"] -= 30
+
+        data.setdefault("cards", {})
+        data["cards"][upgraded_filename] = data["cards"].get(upgraded_filename, 0) + 1
+
+        mark_dirty()
+
+        with open(upgraded_path, "rb") as photo:
+            bot.send_photo(message.chat.id, photo, caption=f"🟨 {card_name} прокачан до 2 уровня!")
+
+        WAITING_FOR_UPGRADE.discard(user_id)
+        return
+
     if card_filename not in data["cards"] or data["cards"][card_filename] < 2:
         bot.send_message(message.chat.id, f"❌ Недостаточно дублей карты {card_name}. Нужно 2 одинаковые.")
         WAITING_FOR_UPGRADE.discard(user_id)
