@@ -63,7 +63,10 @@ def show_inventory(message):
             batch = cards[i:i+max_per_batch]
             media_group = []
             for card_file, count in batch:
-                file_path = os.path.join("cards", card_file)
+                folder = card_folder_by_filename(card_file)
+                file_path = os.path.join(folder, card_file)
+                if not os.path.exists(file_path):
+                    continue
                 media_group.append(types.InputMediaPhoto(open(file_path, 'rb')))
             bot.send_media_group(message.chat.id, media_group)
 
@@ -92,6 +95,17 @@ def show_inventory(message):
         bot.send_message(message.chat.id, "\n".join(caption_lines))
     else:
         bot.send_message(message.chat.id, "У тебя пока нет артефактов.")
+def card_folder_by_filename(card_file: str) -> str:
+    name = os.path.splitext(card_file)[0].lower()  # base
+    # 2 уровень определяется по _2 в конце базы
+    is_lvl2 = name.endswith("_2")
+
+    if name.startswith("akatsuki_"):
+        return "card_akatsuki_2" if is_lvl2 else "card_akatsuki"
+    if name.startswith("biju_"):
+        return "card_biju_2" if is_lvl2 else "card_biju"
+
+    return "cards_2" if is_lvl2 else config.CARDS_FOLDER
 
 
 # 💬 Беседа
